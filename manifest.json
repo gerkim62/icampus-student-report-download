@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "iCampus is insecure - Proof of Concept",
+  "version": "1.0",
+  "description": "This extension demonstrates a security vulnerability in iCampus.",
+  "content_scripts": [
+    {
+      "matches": ["*://icampus.ueab.ac.ke/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}
