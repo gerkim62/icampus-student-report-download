@@ -38,7 +38,7 @@ function createToggleButton() {
   const toggleButton = document.createElement("button");
   toggleButton.id = "poc-toggle-btn";
   toggleButton.className = "poc-toggle-btn";
-  toggleButton.innerText = "Toggle iCampus Downloader";
+  toggleButton.innerText = "Toggle Downloader";
 
   toggleButton.addEventListener("click", toggleUi);
 
