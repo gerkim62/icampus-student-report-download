@@ -76,7 +76,11 @@ async function downloadFiles(files) {
     return;
   }
 
+  let unauthorizedTriggered = false;
+
   const downloads = files.map(async ({ url, filename }) => {
+    if (unauthorizedTriggered) return false; // Skip if unauthorized already triggered
+
     try {
       const response = await fetch(url);
 
@@ -84,14 +88,12 @@ async function downloadFiles(files) {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
       }
 
-      // if returns html, then it might be login page
-      const contentType = response.headers.get("content-type");
-      if (contentType.includes("text/html")) {
-        // if it's a login page,
-        const text = await response.clone().text();
-        if (text.includes("Login")) {
-          window.location.reload();
+      const contentType = response.headers.get("content-type") || "";
 
+      if (contentType.includes("text/html")) {
+        const text = await response.clone().text();
+
+        if (text.includes("Login")) {
           throw new Error("UNAUTHORIZED");
         }
       }
@@ -106,7 +108,6 @@ async function downloadFiles(files) {
       link.click();
       document.body.removeChild(link);
 
-      // Release the object URL to free up memory
       window.URL.revokeObjectURL(blobUrl);
 
       console.log(`Downloaded: ${filename}`);
@@ -114,16 +115,18 @@ async function downloadFiles(files) {
     } catch (error) {
       console.error(`Error downloading ${url}:`, error);
 
-      if (error.message === "UNAUTHORIZED") {
-        alert("Your login session has expired. Please log in and try again.");
-        return false;
+      if (error.message === "UNAUTHORIZED" && !unauthorizedTriggered) {
+        unauthorizedTriggered = true;
+        const reld = confirm(
+          "You're not logged in. Do you want to reload the page to log in again?"
+        );
+        if (reld) window.location.reload();
       }
 
       return false;
     }
   });
 
-  // Wait for all downloads to complete
   await Promise.all(downloads);
 }
 
