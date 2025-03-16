@@ -84,6 +84,18 @@ async function downloadFiles(files) {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
       }
 
+      // if returns html, then it might be login page
+      const contentType = response.headers.get("content-type");
+      if (contentType.includes("text/html")) {
+        // if it's a login page,
+        const text = await response.clone().text();
+        if (text.includes("Login")) {
+          window.location.reload();
+
+          throw new Error("UNAUTHORIZED");
+        }
+      }
+
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
 
@@ -98,8 +110,16 @@ async function downloadFiles(files) {
       window.URL.revokeObjectURL(blobUrl);
 
       console.log(`Downloaded: ${filename}`);
+      return true;
     } catch (error) {
       console.error(`Error downloading ${url}:`, error);
+
+      if (error.message === "UNAUTHORIZED") {
+        alert("Your login session has expired. Please log in and try again.");
+        return false;
+      }
+
+      return false;
     }
   });
 
